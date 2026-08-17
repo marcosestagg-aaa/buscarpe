@@ -17,13 +17,13 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Protótipo do buscARPE: consulte e visualize no mapa os sistemas de abastecimento de água e esgotamento sanitário de Pernambuco.",
+          "Plataforma de consulta geográfica de sistemas de saneamento de Pernambuco. Explore o mapa com sistemas de abastecimento de água e esgotamento sanitário.",
       },
       { property: "og:title", content: "buscARPE — Sistemas de saneamento de Pernambuco" },
       {
         property: "og:description",
         content:
-          "Mapa interativo para explorar sistemas SAA e SES por município, tipo e situação em Pernambuco.",
+          "Plataforma de consulta geográfica de sistemas de saneamento de Pernambuco. Explore sistemas SAA e SES por município, tipo e situação.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "/" },
@@ -100,10 +100,11 @@ function Home() {
             Sobre o buscARPE
           </h2>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-            Explore no mapa os sistemas de abastecimento de água e esgotamento
-            sanitário cadastrados em Pernambuco. Filtre por município, tipo de
-            sistema e situação e clique em um marcador para ver detalhes
-            técnicos, documentos e informações administrativas.
+            Plataforma de consulta geográfica de sistemas de saneamento de
+            Pernambuco. Explore no mapa os sistemas de abastecimento de água e
+            esgotamento sanitário, filtre por município, tipo e situação e
+            clique em um marcador para ver detalhes técnicos, documentos e
+            informações administrativas.
           </p>
         </div>
 
