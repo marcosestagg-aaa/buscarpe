@@ -26,8 +26,10 @@ export const Route = createFileRoute("/")({
           "Mapa interativo para explorar sistemas SAA e SES por município, tipo e situação em Pernambuco.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "/" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "/" }],
   }),
   component: Home,
 });
