@@ -49,8 +49,10 @@ export default function SystemMap({ sistemas, selecionadoId, onSelecionar }: Sys
         const link = L.DomUtil.create("a", "", div) as HTMLAnchorElement;
         link.href = "#";
         link.title = "Recentralizar em Pernambuco";
+        link.setAttribute("aria-label", "Recentralizar mapa em Pernambuco");
+        link.setAttribute("role", "button");
         link.innerHTML =
-          '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin:9px auto"><circle cx="12" cy="12" r="8"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/></svg>';
+          '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin:9px auto" aria-hidden="true"><circle cx="12" cy="12" r="8"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/></svg>';
         L.DomEvent.on(link, "click", (e) => {
           L.DomEvent.preventDefault(e);
           map.setView(PERNAMBUCO_CENTER, PERNAMBUCO_ZOOM);

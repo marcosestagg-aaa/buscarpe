@@ -20,6 +20,9 @@ export function TopBar({
       <div className="flex flex-wrap items-center gap-2 px-3 py-2 sm:gap-4 sm:px-5 sm:py-2.5">
         <h1 className="font-display text-lg font-semibold tracking-tight text-brand-deep">
           busc<span className="text-brand">ARPE</span>
+          <span className="ml-2 text-sm font-medium text-muted-foreground">
+            — Sistemas de Saneamento de Pernambuco
+          </span>
         </h1>
 
         <div className="order-3 flex w-full items-center gap-2 sm:order-2 sm:mx-auto sm:w-auto sm:flex-1 sm:max-w-xl">
