@@ -95,6 +95,18 @@ function Home() {
           </Suspense>
         </ClientOnly>
 
+        <div className="absolute left-3 top-3 z-[600] max-w-xs rounded-lg border border-border bg-card/95 p-3 shadow-float backdrop-blur">
+          <h2 className="font-display text-sm font-semibold text-foreground">
+            Sobre o buscARPE
+          </h2>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+            Explore no mapa os sistemas de abastecimento de água e esgotamento
+            sanitário cadastrados em Pernambuco. Filtre por município, tipo de
+            sistema e situação e clique em um marcador para ver detalhes
+            técnicos, documentos e informações administrativas.
+          </p>
+        </div>
+
         <div className="pointer-events-none absolute right-3 top-3 z-[600] rounded-lg border border-border bg-card/95 px-4 py-2 text-right shadow-float backdrop-blur">
           <p className="font-display text-xl font-semibold leading-none text-brand">
             {sistemas.length}
