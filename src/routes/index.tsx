@@ -1,142 +1,66 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { ClientOnly } from "@tanstack/react-router";
-import { Suspense, lazy, useCallback, useMemo, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 
-import { FiltersPanel } from "@/components/FiltersPanel";
-import { SystemDetails } from "@/components/SystemDetails";
-import { TopBar } from "@/components/TopBar";
-import { MOCK_SISTEMAS } from "@/data/mockSystems";
-import { FILTROS_INICIAIS, type FiltrosSistema, type SistemaSaneamento } from "@/types/system";
-
-const SystemMap = lazy(() => import("@/components/SystemMap"));
+import { autenticado, entrar } from "@/lib/auth";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "buscARPE — Mapa dos sistemas de saneamento de Pernambuco" },
-      {
-        name: "description",
-        content:
-          "Plataforma de consulta geográfica de sistemas de saneamento de Pernambuco. Explore o mapa com sistemas de abastecimento de água e esgotamento sanitário.",
-      },
-      { property: "og:title", content: "buscARPE — Sistemas de saneamento de Pernambuco" },
-      {
-        property: "og:description",
-        content:
-          "Plataforma de consulta geográfica de sistemas de saneamento de Pernambuco. Explore sistemas SAA e SES por município, tipo e situação.",
-      },
+      { title: "Entrar — buscARPE" },
+      { name: "description", content: "Acesse o buscARPE, plataforma de consulta geográfica de sistemas de saneamento de Pernambuco." },
+      { property: "og:title", content: "Entrar — buscARPE" },
+      { property: "og:description", content: "Plataforma de consulta geográfica de sistemas de saneamento de Pernambuco." },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "/" },
-      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:card", content: "summary" },
     ],
     links: [{ rel: "canonical", href: "/" }],
   }),
-  component: Home,
+  component: Login,
 });
 
-function Home() {
-  const [busca, setBusca] = useState("");
-  const [filtros, setFiltros] = useState<FiltrosSistema>(FILTROS_INICIAIS);
-  const [filtrosAbertos, setFiltrosAbertos] = useState(false);
-  const [selecionado, setSelecionado] = useState<SistemaSaneamento | null>(null);
+const inputClass =
+  "w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-ring focus:ring-2 focus:ring-ring/25";
 
-  const sistemas = useMemo(() => {
-    const termo = busca.trim().toLowerCase();
-    return MOCK_SISTEMAS.filter((s) => {
-      const casaBusca =
-        !termo ||
-        s.nome.toLowerCase().includes(termo) ||
-        s.municipio.toLowerCase().includes(termo) ||
-        s.codigo.toLowerCase().includes(termo);
-      const casaMunicipio = filtros.municipio === "Todos" || s.municipio === filtros.municipio;
-      const casaTipo = filtros.tipo === "Todos" || s.tipo === filtros.tipo;
-      const casaSituacao = filtros.situacao === "Todas" || s.situacao === filtros.situacao;
-      return casaBusca && casaMunicipio && casaTipo && casaSituacao;
-    });
-  }, [busca, filtros]);
+function Login() {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const [erro, setErro] = useState(false);
 
-  const filtrosAtivos = useMemo(
-    () =>
-      [
-        filtros.municipio !== "Todos",
-        filtros.tipo !== "Todos",
-        filtros.situacao !== "Todas",
-      ].filter(Boolean).length,
-    [filtros],
-  );
+  useEffect(() => {
+    if (autenticado()) navigate({ to: "/mapa", replace: true });
+  }, [navigate]);
 
-  const limpar = () => {
-    setBusca("");
-    setFiltros(FILTROS_INICIAIS);
-    setSelecionado(null);
-    setFiltrosAbertos(false);
+  const enviar = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (entrar(email, senha)) navigate({ to: "/mapa", replace: true });
+    else setErro(true);
   };
 
-  const selecionar = useCallback((sistema: SistemaSaneamento) => setSelecionado(sistema), []);
-
   return (
-    <div className="flex h-screen flex-col bg-background">
-      <TopBar
-        busca={busca}
-        onBuscaChange={setBusca}
-        onAbrirFiltros={() => setFiltrosAbertos(true)}
-        onLimpar={limpar}
-        filtrosAtivos={filtrosAtivos}
-      />
-
-      <main className="relative flex-1 overflow-hidden">
-        <ClientOnly fallback={<div className="absolute inset-0 bg-secondary" />}>
-          <Suspense fallback={<div className="absolute inset-0 bg-secondary" />}>
-            <SystemMap
-              sistemas={sistemas}
-              selecionadoId={selecionado?.id ?? null}
-              onSelecionar={selecionar}
-            />
-          </Suspense>
-        </ClientOnly>
-
-        <div className="absolute left-3 top-3 z-[600] max-w-xs rounded-lg border border-border bg-card/95 p-3 shadow-float backdrop-blur">
-          <h2 className="font-display text-sm font-semibold text-foreground">
-            Sobre o buscARPE
-          </h2>
-          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-            Plataforma de consulta geográfica de sistemas de saneamento de
-            Pernambuco. Explore no mapa os sistemas de abastecimento de água e
-            esgotamento sanitário, filtre por município, tipo e situação e
-            clique em um marcador para ver detalhes técnicos, documentos e
-            informações administrativas.
+    <main className="flex min-h-screen items-center justify-center bg-secondary px-4">
+      <form onSubmit={enviar} className="w-full max-w-sm space-y-5 rounded-xl border border-border bg-card p-6 shadow-panel">
+        <div>
+          <h1 className="font-display text-2xl font-semibold tracking-tight text-brand-deep">
+            busc<span className="text-brand">ARPE</span>
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Plataforma de consulta geográfica de sistemas de saneamento de Pernambuco
           </p>
         </div>
-
-        <div className="pointer-events-none absolute right-3 top-3 z-[600] rounded-lg border border-border bg-card/95 px-4 py-2 text-right shadow-float backdrop-blur">
-          <p className="font-display text-xl font-semibold leading-none text-brand">
-            {sistemas.length}
-          </p>
-          <p className="mt-1 text-[11px] text-muted-foreground">
-            {sistemas.length === 1 ? "sistema encontrado" : "sistemas cadastrados"}
-          </p>
-        </div>
-
-        {sistemas.length === 0 && (
-          <div className="absolute left-1/2 top-1/2 z-[600] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-card px-5 py-3 text-sm text-muted-foreground shadow-panel">
-            Nenhum sistema encontrado.
-          </div>
-        )}
-
-        <FiltersPanel
-          aberto={filtrosAbertos}
-          filtros={filtros}
-          onFechar={() => setFiltrosAbertos(false)}
-          onAplicar={(novos) => {
-            setFiltros(novos);
-            setFiltrosAbertos(false);
-          }}
-        />
-
-        {selecionado && (
-          <SystemDetails sistema={selecionado} onFechar={() => setSelecionado(null)} />
-        )}
-      </main>
-    </div>
+        <label className="block space-y-1.5">
+          <span className="text-xs font-medium text-foreground">E-mail</span>
+          <input type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} />
+        </label>
+        <label className="block space-y-1.5">
+          <span className="text-xs font-medium text-foreground">Senha</span>
+          <input type="password" required autoComplete="current-password" value={senha} onChange={(e) => setSenha(e.target.value)} className={inputClass} />
+        </label>
+        {erro && <p role="alert" className="text-sm text-destructive">E-mail ou senha inválidos</p>}
+        <button type="submit" className="w-full rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-brand-deep">
+          Entrar
+        </button>
+      </form>
+    </main>
   );
 }

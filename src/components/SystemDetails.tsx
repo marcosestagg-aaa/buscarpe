@@ -1,18 +1,18 @@
 import { useState } from "react";
 import { ExternalLink, FileText, X } from "lucide-react";
 
-import type { SistemaSaneamento } from "@/types/system";
+import type { BemSaneamento } from "@/types/system";
 
 interface SystemDetailsProps {
-  sistema: SistemaSaneamento;
+  sistema: BemSaneamento;
   onFechar: () => void;
 }
 
-type Aba = "visao" | "info" | "docs";
+type Aba = "visao" | "equip" | "docs";
 
 const abas: { id: Aba; label: string }[] = [
-  { id: "visao", label: "Visão geral" },
-  { id: "info", label: "Informações" },
+  { id: "visao", label: "Visão Geral" },
+  { id: "equip", label: "Equipamentos" },
   { id: "docs", label: "Documentos" },
 ];
 
@@ -25,13 +25,8 @@ function Linha({ rotulo, valor }: { rotulo: string; valor: string }) {
   );
 }
 
-function Bloco({ titulo, children }: { titulo: string; children: React.ReactNode }) {
-  return (
-    <section className="space-y-1">
-      <h3 className="text-[11px] font-semibold uppercase tracking-wider text-brand">{titulo}</h3>
-      <dl className="divide-y divide-border">{children}</dl>
-    </section>
-  );
+function Vazio({ texto }: { texto: string }) {
+  return <p className="rounded-md border border-dashed border-border px-3 py-6 text-center text-sm text-muted-foreground">{texto}</p>;
 }
 
 export function SystemDetails({ sistema, onFechar }: SystemDetailsProps) {
@@ -61,9 +56,7 @@ export function SystemDetails({ sistema, onFechar }: SystemDetailsProps) {
             type="button"
             onClick={() => setAba(item.id)}
             className={`flex-1 border-b-2 px-2 py-2.5 text-xs font-medium transition-colors ${
-              aba === item.id
-                ? "border-brand text-brand"
-                : "border-transparent text-muted-foreground hover:text-foreground"
+              aba === item.id ? "border-brand text-brand" : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
             {item.label}
@@ -71,68 +64,55 @@ export function SystemDetails({ sistema, onFechar }: SystemDetailsProps) {
         ))}
       </div>
 
-      <div className="max-h-[calc(70vh-7rem)] space-y-5 overflow-y-auto px-4 py-4 sm:max-h-[calc(100vh-12rem)]">
+      <div className="max-h-[calc(70vh-7rem)] overflow-y-auto px-4 py-4 sm:max-h-[calc(100vh-12rem)]">
         {aba === "visao" && (
-          <>
-            <Bloco titulo="Identificação">
-              <Linha rotulo="Nome do sistema" valor={sistema.nome} />
-              <Linha rotulo="Município" valor={sistema.municipio} />
-              <Linha rotulo="Código / ID" valor={`${sistema.codigo} · #${sistema.id}`} />
-            </Bloco>
-            <Bloco titulo="Classificação">
-              <Linha
-                rotulo="Tipo"
-                valor={sistema.tipo === "SAA" ? "SAA — Abastecimento de água" : "SES — Esgotamento sanitário"}
-              />
-              <Linha rotulo="Situação" valor={sistema.situacao} />
-            </Bloco>
-            <Bloco titulo="Localização">
-              <Linha rotulo="Latitude" valor={sistema.latitude.toFixed(4)} />
-              <Linha rotulo="Longitude" valor={sistema.longitude.toFixed(4)} />
-              <Linha rotulo="Endereço" valor={sistema.endereco} />
-            </Bloco>
-          </>
+          <dl className="divide-y divide-border">
+            <Linha rotulo="Código Único" valor={sistema.codigo} />
+            <Linha rotulo="Nome" valor={sistema.nome} />
+            <Linha rotulo="Endereço" valor={sistema.endereco} />
+            <Linha rotulo="Município" valor={sistema.municipio} />
+            <Linha rotulo="Categoria" valor={sistema.categoria} />
+            <Linha rotulo="Tipo de Sistema" valor={sistema.tipo === "SAA" ? "SAA — Abastecimento de água" : "SES — Esgotamento sanitário"} />
+            <Linha rotulo="Situação" valor={sistema.situacao} />
+          </dl>
         )}
 
-        {aba === "info" && (
-          <>
-            <Bloco titulo="Informações complementares">
-              <Linha rotulo="Capacidade" valor={sistema.capacidade} />
-              <Linha rotulo="População atendida" valor={sistema.populacaoAtendida} />
-              <Linha rotulo="Operadora" valor={sistema.operadora} />
-              <Linha rotulo="Ano de implantação" valor={String(sistema.anoImplantacao)} />
-            </Bloco>
-            <section className="space-y-1">
-              <h3 className="text-[11px] font-semibold uppercase tracking-wider text-brand">
-                Observações
-              </h3>
-              <p className="text-sm leading-relaxed text-muted-foreground">{sistema.observacoes}</p>
-            </section>
-          </>
-        )}
+        {aba === "equip" &&
+          (sistema.equipamentos.length === 0 ? (
+            <Vazio texto="Não há equipamentos cadastrados para este bem" />
+          ) : (
+            <ul className="space-y-2">
+              {sistema.equipamentos.map((eq) => (
+                <li key={eq.id} className="rounded-md border border-border px-3 py-2.5">
+                  <p className="text-sm font-medium text-foreground">{eq.nome}</p>
+                  <div className="mt-1 flex justify-between text-xs text-muted-foreground">
+                    <span>{eq.codigo}</span>
+                    <span className={eq.situacao === "Operando" ? "text-brand" : ""}>{eq.situacao}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ))}
 
-        {aba === "docs" && (
-          <ul className="space-y-2">
-            {sistema.documentos.map((doc) => (
-              <li
-                key={doc.id}
-                className="flex items-center gap-3 rounded-md border border-border px-3 py-2.5"
-              >
-                <FileText className="size-4 shrink-0 text-brand" />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-foreground">{doc.nome}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {doc.tipo} · {doc.tamanho}
-                  </p>
-                </div>
-                <ExternalLink className="size-4 shrink-0 text-muted-foreground" />
-              </li>
-            ))}
-            <li className="pt-1 text-xs text-muted-foreground">
-              Documentos de demonstração — sem download real neste protótipo.
-            </li>
-          </ul>
-        )}
+        {aba === "docs" &&
+          (sistema.documentos.length === 0 ? (
+            <Vazio texto="Não há documentos anexados a este bem" />
+          ) : (
+            <ul className="space-y-2">
+              {sistema.documentos.map((doc) => (
+                <li key={doc.id} className="flex items-center gap-3 rounded-md border border-border px-3 py-2.5">
+                  <FileText className="size-4 shrink-0 text-brand" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-foreground">{doc.nome}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {doc.tipo} · {doc.tamanho}
+                    </p>
+                  </div>
+                  <ExternalLink className="size-4 shrink-0 text-muted-foreground" />
+                </li>
+              ))}
+            </ul>
+          ))}
       </div>
     </div>
   );
