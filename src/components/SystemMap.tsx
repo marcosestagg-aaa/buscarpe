@@ -1,17 +1,18 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import "leaflet.markercluster";
 
 import { PERNAMBUCO_CENTER, PERNAMBUCO_ZOOM } from "@/data/mockSystems";
-import type { SistemaSaneamento } from "@/types/system";
+import type { BemSaneamento } from "@/types/system";
 
 interface SystemMapProps {
-  sistemas: SistemaSaneamento[];
+  sistemas: BemSaneamento[];
   selecionadoId: string | null;
-  onSelecionar: (sistema: SistemaSaneamento) => void;
+  onSelecionar: (sistema: BemSaneamento) => void;
 }
 
-function criarIcone(sistema: SistemaSaneamento, ativo: boolean) {
+function criarIcone(sistema: BemSaneamento, ativo: boolean) {
   return L.divIcon({
     className: "",
     html: `<div class="marker-pin" data-tipo="${sistema.tipo}" data-situacao="${sistema.situacao}" data-active="${ativo}"><span>${sistema.tipo}</span></div>`,
@@ -20,10 +21,12 @@ function criarIcone(sistema: SistemaSaneamento, ativo: boolean) {
   });
 }
 
+type MarkerBem = L.Marker & { tipoBem?: string };
+
 export default function SystemMap({ sistemas, selecionadoId, onSelecionar }: SystemMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
-  const markersRef = useRef<L.LayerGroup | null>(null);
+  const markersRef = useRef<L.MarkerClusterGroup | null>(null);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -32,7 +35,6 @@ export default function SystemMap({ sistemas, selecionadoId, onSelecionar }: Sys
       center: PERNAMBUCO_CENTER,
       zoom: PERNAMBUCO_ZOOM,
       zoomControl: false,
-      attributionControl: true,
     });
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -40,9 +42,8 @@ export default function SystemMap({ sistemas, selecionadoId, onSelecionar }: Sys
       maxZoom: 18,
     }).addTo(map);
 
-    L.control.zoom({ position: "topleft" }).addTo(map);
+    L.control.zoom({ position: "bottomleft" }).addTo(map);
 
-    // Recentraliza em Pernambuco
     const RecentrarControl = L.Control.extend({
       onAdd: () => {
         const div = L.DomUtil.create("div", "leaflet-bar leaflet-control");
@@ -60,10 +61,21 @@ export default function SystemMap({ sistemas, selecionadoId, onSelecionar }: Sys
         return div;
       },
     });
-    new RecentrarControl({ position: "topleft" }).addTo(map);
+    new RecentrarControl({ position: "bottomleft" }).addTo(map);
 
-
-    markersRef.current = L.layerGroup().addTo(map);
+    markersRef.current = L.markerClusterGroup({
+      showCoverageOnHover: false,
+      maxClusterRadius: 50,
+      iconCreateFunction: (cluster) => {
+        const tipos = new Set(cluster.getAllChildMarkers().map((m) => (m as MarkerBem).tipoBem));
+        const mix = tipos.size > 1 ? "MISTO" : [...tipos][0];
+        return L.divIcon({
+          className: "",
+          html: `<div class="bem-cluster" data-mix="${mix}">${cluster.getChildCount()}</div>`,
+          iconSize: [36, 36],
+        });
+      },
+    }).addTo(map);
     mapRef.current = map;
 
     return () => {
@@ -77,15 +89,16 @@ export default function SystemMap({ sistemas, selecionadoId, onSelecionar }: Sys
     const grupo = markersRef.current;
     if (!grupo) return;
     grupo.clearLayers();
-
-    sistemas.forEach((sistema) => {
-      L.marker([sistema.latitude, sistema.longitude], {
-        icon: criarIcone(sistema, sistema.id === selecionadoId),
-        title: sistema.nome,
-      })
-        .on("click", () => onSelecionar(sistema))
-        .addTo(grupo);
-    });
+    grupo.addLayers(
+      sistemas.map((sistema) => {
+        const m: MarkerBem = L.marker([sistema.latitude, sistema.longitude], {
+          icon: criarIcone(sistema, sistema.id === selecionadoId),
+          title: sistema.nome,
+        }).on("click", () => onSelecionar(sistema));
+        m.tipoBem = sistema.tipo;
+        return m;
+      }),
+    );
   }, [sistemas, selecionadoId, onSelecionar]);
 
   return <div ref={containerRef} className="absolute inset-0" />;

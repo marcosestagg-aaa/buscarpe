@@ -1,31 +1,26 @@
-import { Eraser, Search, SlidersHorizontal } from "lucide-react";
+import { Eraser, LogOut, Search, SlidersHorizontal } from "lucide-react";
 
 interface TopBarProps {
   busca: string;
   onBuscaChange: (valor: string) => void;
   onAbrirFiltros: () => void;
   onLimpar: () => void;
+  onSair: () => void;
   filtrosAtivos: number;
 }
 
-export function TopBar({
-  busca,
-  onBuscaChange,
-  onAbrirFiltros,
-  onLimpar,
-  filtrosAtivos,
-}: TopBarProps) {
+export function TopBar({ busca, onBuscaChange, onAbrirFiltros, onLimpar, onSair, filtrosAtivos }: TopBarProps) {
   return (
     <header className="z-[500] border-b border-border bg-card/95 backdrop-blur">
       <div className="flex flex-wrap items-center gap-2 px-3 py-2 sm:gap-4 sm:px-5 sm:py-2.5">
         <h1 className="font-display text-lg font-semibold tracking-tight text-brand-deep">
           busc<span className="text-brand">ARPE</span>
-          <span className="ml-2 text-sm font-medium text-muted-foreground">
+          <span className="ml-2 hidden text-sm font-medium text-muted-foreground lg:inline">
             — Sistemas de Saneamento de Pernambuco
           </span>
         </h1>
 
-        <div className="order-3 flex w-full items-center gap-2 sm:order-2 sm:mx-auto sm:w-auto sm:flex-1 sm:max-w-xl">
+        <div className="order-3 flex w-full items-center gap-2 sm:order-2 sm:mx-auto sm:w-auto sm:max-w-xl sm:flex-1">
           <button
             type="button"
             onClick={onAbrirFiltros}
@@ -45,21 +40,31 @@ export function TopBar({
             <input
               value={busca}
               onChange={(e) => onBuscaChange(e.target.value)}
-              placeholder="Buscar município ou sistema..."
-              aria-label="Buscar município ou sistema"
+              placeholder="Buscar por nome, código, endereço, município, categoria…"
+              aria-label="Buscar bens"
               className="w-full rounded-md border border-input bg-background py-2 pl-9 pr-3 text-sm text-foreground outline-none transition-shadow placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/25"
             />
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={onLimpar}
-          className="order-2 ml-auto inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:order-3 sm:ml-0"
-        >
-          <Eraser className="size-4" />
-          Limpar
-        </button>
+        <div className="order-2 ml-auto flex items-center gap-1 sm:order-3 sm:ml-0">
+          <button
+            type="button"
+            onClick={onLimpar}
+            className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          >
+            <Eraser className="size-4" />
+            Limpar
+          </button>
+          <button
+            type="button"
+            onClick={onSair}
+            className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          >
+            <LogOut className="size-4" />
+            Sair
+          </button>
+        </div>
       </div>
     </header>
   );
