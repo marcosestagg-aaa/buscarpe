@@ -35,7 +35,7 @@ export const GERES = Object.keys(GERES_MUNICIPIOS);
 export const MUNICIPIOS = Object.values(GERES_MUNICIPIOS).flat().sort((a, b) => a.localeCompare(b));
 
 const SERTAO = ["VI GERES", "VII GERES", "VIII GERES", "IX GERES"];
-const geresDe = (m: string) => GERES.find((g) => GERES_MUNICIPIOS[g].includes(m))!;
+const geresDe = (m: string) => GERES.find((g) => GERES_MUNICIPIOS[g]?.includes(m))!;
 
 type Linha = [string, string, string, TipoSistema, CategoriaBem, SituacaoBem, number, number, string];
 

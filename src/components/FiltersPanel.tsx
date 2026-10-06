@@ -61,7 +61,7 @@ export function FiltersPanel({ aberto, filtros, onFechar, onChange }: FiltersPan
   useEffect(() => force((n) => n + 1), [aberto]);
   if (!aberto) return null;
 
-  const municipios = filtros.geres === TODOS ? MUNICIPIOS : GERES_MUNICIPIOS[filtros.geres];
+  const municipios = filtros.geres === TODOS ? MUNICIPIOS : (GERES_MUNICIPIOS[filtros.geres] ?? []);
   const set = (parcial: Partial<FiltrosBem>) => onChange({ ...filtros, ...parcial });
 
   return (
@@ -87,7 +87,7 @@ export function FiltersPanel({ aberto, filtros, onFechar, onChange }: FiltersPan
             valor={filtros.geres}
             opcoes={GERES}
             onChange={(v) => {
-              const lista = v === TODOS ? MUNICIPIOS : GERES_MUNICIPIOS[v];
+              const lista = v === TODOS ? MUNICIPIOS : (GERES_MUNICIPIOS[v] ?? []);
               set({ geres: v, municipio: lista.includes(filtros.municipio) ? filtros.municipio : TODOS });
             }}
           />
