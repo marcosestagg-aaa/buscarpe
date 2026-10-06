@@ -1,69 +1,60 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { ClientOnly } from "@tanstack/react-router";
+import { ClientOnly, createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { Suspense, lazy, useCallback, useMemo, useState } from "react";
 
 import { FiltersPanel } from "@/components/FiltersPanel";
 import { SystemDetails } from "@/components/SystemDetails";
 import { TopBar } from "@/components/TopBar";
-import { MOCK_SISTEMAS } from "@/data/mockSystems";
-import { FILTROS_INICIAIS, type FiltrosSistema, type SistemaSaneamento } from "@/types/system";
+import { MOCK_BENS } from "@/data/mockSystems";
+import { autenticado, normalizar, sair } from "@/lib/auth";
+import { FILTROS_INICIAIS, TODOS, type BemSaneamento, type FiltrosBem } from "@/types/system";
 
 const SystemMap = lazy(() => import("@/components/SystemMap"));
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/mapa")({
+  ssr: false,
+  beforeLoad: () => {
+    if (!autenticado()) throw redirect({ to: "/" });
+  },
   head: () => ({
     meta: [
-      { title: "buscARPE — Mapa dos sistemas de saneamento de Pernambuco" },
-      {
-        name: "description",
-        content:
-          "Plataforma de consulta geográfica de sistemas de saneamento de Pernambuco. Explore o mapa com sistemas de abastecimento de água e esgotamento sanitário.",
-      },
-      { property: "og:title", content: "buscARPE — Sistemas de saneamento de Pernambuco" },
-      {
-        property: "og:description",
-        content:
-          "Plataforma de consulta geográfica de sistemas de saneamento de Pernambuco. Explore sistemas SAA e SES por município, tipo e situação.",
-      },
+      { title: "Mapa de bens de saneamento — buscARPE" },
+      { name: "description", content: "Plataforma de consulta geográfica de sistemas de saneamento de Pernambuco." },
+      { property: "og:title", content: "Mapa — buscARPE" },
+      { property: "og:description", content: "Explore bens de saneamento de Pernambuco por GERES, município, sistema e categoria." },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "/" },
-      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:card", content: "summary" },
     ],
-    links: [{ rel: "canonical", href: "/" }],
   }),
-  component: Home,
+  component: Mapa,
 });
 
-function Home() {
+function Mapa() {
+  const navigate = useNavigate();
   const [busca, setBusca] = useState("");
-  const [filtros, setFiltros] = useState<FiltrosSistema>(FILTROS_INICIAIS);
+  const [filtros, setFiltros] = useState<FiltrosBem>(FILTROS_INICIAIS);
   const [filtrosAbertos, setFiltrosAbertos] = useState(false);
-  const [selecionado, setSelecionado] = useState<SistemaSaneamento | null>(null);
+  const [selecionado, setSelecionado] = useState<BemSaneamento | null>(null);
 
-  const sistemas = useMemo(() => {
-    const termo = busca.trim().toLowerCase();
-    return MOCK_SISTEMAS.filter((s) => {
+  const bens = useMemo(() => {
+    const termo = normalizar(busca.trim());
+    const ok = (f: string, v: string) => f === TODOS || f === v;
+    return MOCK_BENS.filter((b) => {
       const casaBusca =
         !termo ||
-        s.nome.toLowerCase().includes(termo) ||
-        s.municipio.toLowerCase().includes(termo) ||
-        s.codigo.toLowerCase().includes(termo);
-      const casaMunicipio = filtros.municipio === "Todos" || s.municipio === filtros.municipio;
-      const casaTipo = filtros.tipo === "Todos" || s.tipo === filtros.tipo;
-      const casaSituacao = filtros.situacao === "Todas" || s.situacao === filtros.situacao;
-      return casaBusca && casaMunicipio && casaTipo && casaSituacao;
+        [b.nome, b.codigo, b.endereco, b.municipio, b.categoria].some((c) => normalizar(c).includes(termo));
+      return (
+        casaBusca &&
+        ok(filtros.microrregiao, b.microrregiao) &&
+        ok(filtros.geres, b.geres) &&
+        ok(filtros.municipio, b.municipio) &&
+        ok(filtros.tipo, b.tipo) &&
+        ok(filtros.categoria, b.categoria) &&
+        ok(filtros.situacao, b.situacao)
+      );
     });
   }, [busca, filtros]);
 
-  const filtrosAtivos = useMemo(
-    () =>
-      [
-        filtros.municipio !== "Todos",
-        filtros.tipo !== "Todos",
-        filtros.situacao !== "Todas",
-      ].filter(Boolean).length,
-    [filtros],
-  );
+  const filtrosAtivos = Object.values(filtros).filter((v) => v !== TODOS).length;
 
   const limpar = () => {
     setBusca("");
@@ -72,7 +63,7 @@ function Home() {
     setFiltrosAbertos(false);
   };
 
-  const selecionar = useCallback((sistema: SistemaSaneamento) => setSelecionado(sistema), []);
+  const selecionar = useCallback((b: BemSaneamento) => setSelecionado(b), []);
 
   return (
     <div className="flex h-screen flex-col bg-background">
@@ -81,45 +72,38 @@ function Home() {
         onBuscaChange={setBusca}
         onAbrirFiltros={() => setFiltrosAbertos(true)}
         onLimpar={limpar}
+        onSair={() => {
+          sair();
+          navigate({ to: "/", replace: true });
+        }}
         filtrosAtivos={filtrosAtivos}
       />
 
       <main className="relative flex-1 overflow-hidden">
         <ClientOnly fallback={<div className="absolute inset-0 bg-secondary" />}>
           <Suspense fallback={<div className="absolute inset-0 bg-secondary" />}>
-            <SystemMap
-              sistemas={sistemas}
-              selecionadoId={selecionado?.id ?? null}
-              onSelecionar={selecionar}
-            />
+            <SystemMap sistemas={bens} selecionadoId={selecionado?.id ?? null} onSelecionar={selecionar} />
           </Suspense>
         </ClientOnly>
 
-        <div className="absolute left-3 top-3 z-[600] max-w-xs rounded-lg border border-border bg-card/95 p-3 shadow-float backdrop-blur">
-          <h2 className="font-display text-sm font-semibold text-foreground">
-            Sobre o buscARPE
-          </h2>
+        <div className="absolute left-3 top-3 z-[600] hidden max-w-xs rounded-lg border border-border bg-card/95 p-3 shadow-float backdrop-blur sm:block">
+          <h2 className="font-display text-sm font-semibold text-foreground">Sobre o buscARPE</h2>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-            Plataforma de consulta geográfica de sistemas de saneamento de
-            Pernambuco. Explore no mapa os sistemas de abastecimento de água e
-            esgotamento sanitário, filtre por município, tipo e situação e
-            clique em um marcador para ver detalhes técnicos, documentos e
-            informações administrativas.
+            Plataforma de consulta geográfica de sistemas de saneamento de Pernambuco. Filtre os bens
+            por região, município, sistema e categoria e clique em um marcador para ver detalhes.
           </p>
         </div>
 
         <div className="pointer-events-none absolute right-3 top-3 z-[600] rounded-lg border border-border bg-card/95 px-4 py-2 text-right shadow-float backdrop-blur">
-          <p className="font-display text-xl font-semibold leading-none text-brand">
-            {sistemas.length}
-          </p>
+          <p className="font-display text-xl font-semibold leading-none text-brand">{bens.length}</p>
           <p className="mt-1 text-[11px] text-muted-foreground">
-            {sistemas.length === 1 ? "sistema encontrado" : "sistemas cadastrados"}
+            {bens.length === 1 ? "bem cadastrado" : "bens cadastrados"}
           </p>
         </div>
 
-        {sistemas.length === 0 && (
+        {bens.length === 0 && (
           <div className="absolute left-1/2 top-1/2 z-[600] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-card px-5 py-3 text-sm text-muted-foreground shadow-panel">
-            Nenhum sistema encontrado.
+            Nenhum bem encontrado
           </div>
         )}
 
@@ -127,15 +111,10 @@ function Home() {
           aberto={filtrosAbertos}
           filtros={filtros}
           onFechar={() => setFiltrosAbertos(false)}
-          onAplicar={(novos) => {
-            setFiltros(novos);
-            setFiltrosAbertos(false);
-          }}
+          onChange={setFiltros}
         />
 
-        {selecionado && (
-          <SystemDetails sistema={selecionado} onFechar={() => setSelecionado(null)} />
-        )}
+        {selecionado && <SystemDetails sistema={selecionado} onFechar={() => setSelecionado(null)} />}
       </main>
     </div>
   );
