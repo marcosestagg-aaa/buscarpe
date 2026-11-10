@@ -6,9 +6,9 @@ import { autenticado, entrar } from "@/lib/auth";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Entrar — buscARPE" },
-      { name: "description", content: "Acesse o buscARPE, plataforma de consulta geográfica de sistemas de saneamento de Pernambuco." },
-      { property: "og:title", content: "Entrar — buscARPE" },
+      { title: "Entrar — BuscARPE" },
+      { name: "description", content: "Acesse o BuscARPE, plataforma de consulta geográfica de sistemas de saneamento de Pernambuco." },
+      { property: "og:title", content: "Entrar — BuscARPE" },
       { property: "og:description", content: "Plataforma de consulta geográfica de sistemas de saneamento de Pernambuco." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -41,8 +41,8 @@ function Login() {
     <main className="flex min-h-screen items-center justify-center bg-secondary px-4">
       <form onSubmit={enviar} className="w-full max-w-sm space-y-5 rounded-xl border border-border bg-card p-6 shadow-panel">
         <div>
-          <h1 className="font-display text-2xl font-semibold tracking-tight text-brand-deep">
-            busc<span className="text-brand">ARPE</span>
+          <h1 className="font-display text-2xl font-semibold tracking-normal text-brand-deep">
+            Busc<span className="text-brand">ARPE</span>
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Plataforma de consulta geográfica de sistemas de saneamento de Pernambuco

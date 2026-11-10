@@ -4,9 +4,12 @@
  */
 
 export type TipoSistema = "SAA" | "SES";
-export type SituacaoBem = "Operando" | "Inoperante";
+export type SituacaoBem = "Operando" | "Inoperante" | "N/I";
 export type CategoriaBem = "EAT" | "EEE" | "ETE" | "RAP" | "REL" | "RES";
 export type Microrregiao = "MRAE-I Sertão" | "MRAE-II RMR–Pajeú";
+
+export type VisibilidadeBem = "Superficial" | "Subterrâneo";
+export type Concessionaria = "Vita" | "Aqua";
 
 export interface DocumentoBem {
   id: string;
@@ -20,6 +23,7 @@ export interface EquipamentoBem {
   nome: string;
   codigo: string;
   situacao: SituacaoBem;
+  visibilidade: VisibilidadeBem;
 }
 
 export interface BemSaneamento {
@@ -27,7 +31,9 @@ export interface BemSaneamento {
   codigo: string;
   nome: string;
   municipio: string;
-  geres: string;
+  regiaoDesenvolvimento: string;
+  concessionaria: Concessionaria;
+  visibilidade: VisibilidadeBem;
   microrregiao: Microrregiao;
   categoria: CategoriaBem;
   tipo: TipoSistema;
@@ -41,20 +47,17 @@ export interface BemSaneamento {
 
 export interface FiltrosBem {
   microrregiao: string;
-  geres: string;
+  rd: string;
   municipio: string;
   tipo: string;
   categoria: string;
   situacao: string;
+  concessionaria: string;
+  visibilidade: string;
 }
 
 export const TODOS = "Todos";
-
 export const FILTROS_INICIAIS: FiltrosBem = {
-  microrregiao: TODOS,
-  geres: TODOS,
-  municipio: TODOS,
-  tipo: TODOS,
-  categoria: TODOS,
-  situacao: TODOS,
+  microrregiao: TODOS, rd: TODOS, municipio: TODOS, tipo: TODOS,
+  categoria: TODOS, situacao: TODOS, concessionaria: TODOS, visibilidade: TODOS,
 };

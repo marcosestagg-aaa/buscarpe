@@ -44,7 +44,7 @@ function ErrorComponent({ error, reset }: { error: unknown; reset: () => void })
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+        <h1 className="text-xl font-semibold tracking-normal text-foreground">
           This page didn't load
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -77,10 +77,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "buscARPE" },
+      { title: "BuscARPE" },
       { name: "description", content: "Plataforma de consulta geográfica de sistemas de saneamento de Pernambuco." },
-      { name: "author", content: "buscARPE" },
-      { property: "og:title", content: "buscARPE" },
+      { name: "author", content: "BuscARPE" },
+      { property: "og:title", content: "BuscARPE" },
       { property: "og:description", content: "Plataforma de consulta geográfica de sistemas de saneamento de Pernambuco." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

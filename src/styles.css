@@ -54,6 +54,7 @@
   --color-saa: var(--saa);
   --color-ses: var(--ses);
   --color-success: var(--success);
+  --color-warning: var(--warning);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -72,7 +73,7 @@
 }
 
 :root {
-  --radius: 0.75rem;
+  --radius: 0.5rem;
   --background: oklch(0.985 0.004 230);
   --foreground: oklch(0.22 0.03 240);
   --card: oklch(1 0 0);
@@ -95,11 +96,12 @@
   --brand: oklch(0.46 0.09 232);
   --brand-deep: oklch(0.29 0.06 240);
   --brand-soft: oklch(0.95 0.02 224);
-  --saa: oklch(0.53 0.13 248); /* #1D6FB8 */
-  --ses: oklch(0.62 0.11 180); /* #1A9E8F */
+  --saa: oklch(0.5323568624 0.1370899182 250.4078942); /* #1D6FB8 */
+  --ses: oklch(0.4845325263 0.0525328588 40.6936653); /* #795548 */
+  --warning: oklch(0.57 0.12 75);
   --success: oklch(0.6 0.11 160);
   --chart-1: oklch(0.55 0.1 225);
-  --chart-2: oklch(0.55 0.09 180);
+  --chart-2: var(--ses);
   --chart-3: oklch(0.6 0.11 160);
   --chart-4: oklch(0.66 0.12 80);
   --chart-5: oklch(0.5 0.1 300);
@@ -169,7 +171,7 @@
   h2,
   h3 {
     font-family: var(--font-display);
-    letter-spacing: -0.015em;
+    letter-spacing: 0;
   }
 }
 
@@ -219,7 +221,7 @@
   font-size: 10px;
   font-weight: 700;
   color: var(--color-card);
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
 }
 
 .marker-pin[data-tipo="SAA"] {
@@ -256,3 +258,8 @@
   transform: rotate(-45deg) scale(1.18);
   outline: 3px solid color-mix(in oklab, var(--color-brand) 35%, transparent);
 }
+
+.executive-dialog { width: 100%; max-width: none; height: 100dvh; border-radius: 0; padding: 0; display: flex; flex-direction: column; gap: 0; overflow: hidden; }
+.executive-dialog > button { top: 1.5rem; right: 1.5rem; }
+.recharts-wrapper:focus:not(:focus-visible), .recharts-surface:focus:not(:focus-visible) { outline: none; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }

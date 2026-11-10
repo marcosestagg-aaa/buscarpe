@@ -16,26 +16,24 @@ export const PERNAMBUCO_ZOOM = 7;
 export const MICRORREGIOES: Microrregiao[] = ["MRAE-I Sertão", "MRAE-II RMR–Pajeú"];
 export const CATEGORIAS: CategoriaBem[] = ["EAT", "EEE", "ETE", "RAP", "REL", "RES"];
 
-/** GERES → municípios (amostra de demonstração). */
-export const GERES_MUNICIPIOS: Record<string, string[]> = {
-  "I GERES": ["Recife", "Olinda", "Jaboatão dos Guararapes", "Paulista"],
-  "II GERES": ["Limoeiro", "Carpina"],
-  "III GERES": ["Palmares", "Barreiros"],
-  "IV GERES": ["Caruaru", "Gravatá"],
-  "V GERES": ["Garanhuns"],
-  "VI GERES": ["Arcoverde"],
-  "VII GERES": ["Salgueiro"],
-  "VIII GERES": ["Petrolina"],
-  "IX GERES": ["Ouricuri", "Araripina"],
-  "X GERES": ["Afogados da Ingazeira"],
-  "XI GERES": ["Serra Talhada"],
-  "XII GERES": ["Goiana"],
+/** Regiões oficiais; municípios e bens abaixo são uma amostra de demonstração. */
+export const RD_MUNICIPIOS: Record<string, string[]> = {
+  "Metropolitana": ["Recife", "Olinda", "Jaboatão dos Guararapes", "Paulista"],
+  "Mata Norte": ["Carpina", "Goiana"],
+  "Mata Sul": ["Palmares", "Barreiros"],
+  "Agreste Setentrional": ["Limoeiro"],
+  "Agreste Central": ["Caruaru", "Gravatá"],
+  "Agreste Meridional": ["Garanhuns"],
+  "Sertão do Moxotó": ["Arcoverde"],
+  "Sertão do Pajeú": ["Afogados da Ingazeira", "Serra Talhada"],
+  "Sertão Central": ["Salgueiro"],
+  "Sertão do Araripe": ["Ouricuri", "Araripina"],
+  "Sertão do São Francisco": ["Petrolina"],
+  "Sertão de Itaparica": [],
 };
-export const GERES = Object.keys(GERES_MUNICIPIOS);
-export const MUNICIPIOS = Object.values(GERES_MUNICIPIOS).flat().sort((a, b) => a.localeCompare(b));
-
-const SERTAO = ["VI GERES", "VII GERES", "VIII GERES", "IX GERES"];
-const geresDe = (m: string) => GERES.find((g) => GERES_MUNICIPIOS[g]?.includes(m))!;
+export const REGIOES_DESENVOLVIMENTO = Object.keys(RD_MUNICIPIOS);
+export const MUNICIPIOS = Object.values(RD_MUNICIPIOS).flat().sort((a, b) => a.localeCompare(b));
+const regiaoDe = (m: string) => REGIOES_DESENVOLVIMENTO.find((rd) => RD_MUNICIPIOS[rd]?.includes(m)) ?? "N/I";
 
 type Linha = [string, string, string, TipoSistema, CategoriaBem, SituacaoBem, number, number, string];
 
@@ -73,25 +71,28 @@ const docs = (id: string) => [
 ];
 
 const equips = (codigo: string, i: number) =>
-  ["Conjunto motobomba", "Painel elétrico", "Macromedidor", "Válvula de controle"]
+  ["Bomba centrífuga", "Motor elétrico", "Macromedidor", "Válvula de controle"]
     .slice(0, 2 + (i % 3))
     .map((nome, k) => ({
       id: `${codigo}-e${k}`,
       nome,
       codigo: `${codigo}-EQ${String(k + 1).padStart(2, "0")}`,
+      visibilidade: k >= 2 ? ("Subterrâneo" as const) : ("Superficial" as const),
       situacao: (k + i) % 4 === 3 ? ("Inoperante" as const) : ("Operando" as const),
     }));
 
 export const MOCK_BENS: BemSaneamento[] = LINHAS.map(
   ([codigo, nome, municipio, tipo, categoria, situacao, latitude, longitude, endereco], i) => {
-    const geres = geresDe(municipio);
+    const regiaoDesenvolvimento = regiaoDe(municipio);
     return {
       id: String(i + 1),
       codigo,
       nome,
       municipio,
-      geres,
-      microrregiao: SERTAO.includes(geres) ? "MRAE-I Sertão" : "MRAE-II RMR–Pajeú",
+      regiaoDesenvolvimento,
+      concessionaria: i % 2 === 0 ? "Vita" : "Aqua",
+      visibilidade: categoria === "RAP" || categoria === "RES" ? "Subterrâneo" : "Superficial",
+      microrregiao: regiaoDesenvolvimento.startsWith("Sertão") ? "MRAE-I Sertão" : "MRAE-II RMR–Pajeú",
       categoria,
       tipo,
       situacao,

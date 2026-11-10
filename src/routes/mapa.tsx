@@ -4,8 +4,10 @@ import { Suspense, lazy, useCallback, useMemo, useState } from "react";
 import { FiltersPanel } from "@/components/FiltersPanel";
 import { SystemDetails } from "@/components/SystemDetails";
 import { TopBar } from "@/components/TopBar";
+import { ExecutiveDashboard } from "@/components/ExecutiveDashboard";
+import { filtrarBens } from "@/lib/system-summary";
 import { MOCK_BENS } from "@/data/mockSystems";
-import { autenticado, normalizar, sair } from "@/lib/auth";
+import { autenticado, sair } from "@/lib/auth";
 import { FILTROS_INICIAIS, TODOS, type BemSaneamento, type FiltrosBem } from "@/types/system";
 
 const SystemMap = lazy(() => import("@/components/SystemMap"));
@@ -17,10 +19,10 @@ export const Route = createFileRoute("/mapa")({
   },
   head: () => ({
     meta: [
-      { title: "Mapa de bens de saneamento — buscARPE" },
+      { title: "Mapa de bens de saneamento — BuscARPE" },
       { name: "description", content: "Plataforma de consulta geográfica de sistemas de saneamento de Pernambuco." },
-      { property: "og:title", content: "Mapa — buscARPE" },
-      { property: "og:description", content: "Explore bens de saneamento de Pernambuco por GERES, município, sistema e categoria." },
+      { property: "og:title", content: "Mapa — BuscARPE" },
+      { property: "og:description", content: "Explore bens de saneamento de Pernambuco por região de desenvolvimento, município, sistema e categoria." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -34,25 +36,9 @@ function Mapa() {
   const [filtros, setFiltros] = useState<FiltrosBem>(FILTROS_INICIAIS);
   const [filtrosAbertos, setFiltrosAbertos] = useState(false);
   const [selecionado, setSelecionado] = useState<BemSaneamento | null>(null);
+  const [painelAberto, setPainelAberto] = useState(false);
 
-  const bens = useMemo(() => {
-    const termo = normalizar(busca.trim());
-    const ok = (f: string, v: string) => f === TODOS || f === v;
-    return MOCK_BENS.filter((b) => {
-      const casaBusca =
-        !termo ||
-        [b.nome, b.codigo, b.endereco, b.municipio, b.categoria].some((c) => normalizar(c).includes(termo));
-      return (
-        casaBusca &&
-        ok(filtros.microrregiao, b.microrregiao) &&
-        ok(filtros.geres, b.geres) &&
-        ok(filtros.municipio, b.municipio) &&
-        ok(filtros.tipo, b.tipo) &&
-        ok(filtros.categoria, b.categoria) &&
-        ok(filtros.situacao, b.situacao)
-      );
-    });
-  }, [busca, filtros]);
+  const bens = useMemo(() => filtrarBens(MOCK_BENS, busca, filtros), [busca, filtros]);
 
   const filtrosAtivos = Object.values(filtros).filter((v) => v !== TODOS).length;
 
@@ -66,7 +52,7 @@ function Mapa() {
   const selecionar = useCallback((b: BemSaneamento) => setSelecionado(b), []);
 
   return (
-    <div className="flex h-screen flex-col bg-background">
+    <div className="flex h-dvh flex-col bg-background">
       <TopBar
         busca={busca}
         onBuscaChange={setBusca}
@@ -76,7 +62,9 @@ function Mapa() {
           sair();
           navigate({ to: "/", replace: true });
         }}
-        filtrosAtivos={filtrosAtivos}
+        filtros={filtros}
+        onRemoverFiltro={(key) => { setFiltros((atual) => ({ ...atual, [key]: TODOS, ...(key === "rd" ? { municipio: TODOS } : {}) })); setSelecionado(null); }}
+        onAbrirPainel={() => setPainelAberto(true)}
       />
 
       <main className="relative flex-1 overflow-hidden">
@@ -87,7 +75,7 @@ function Mapa() {
         </ClientOnly>
 
         <div className="absolute left-3 top-3 z-[600] hidden max-w-xs rounded-lg border border-border bg-card/95 p-3 shadow-float backdrop-blur sm:block">
-          <h2 className="font-display text-sm font-semibold text-foreground">Sobre o buscARPE</h2>
+          <h2 className="font-display text-sm font-semibold text-foreground">Sobre o BuscARPE</h2>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
             Plataforma de consulta geográfica de sistemas de saneamento de Pernambuco. Filtre os bens
             por região, município, sistema e categoria e clique em um marcador para ver detalhes.
@@ -111,11 +99,13 @@ function Mapa() {
           aberto={filtrosAbertos}
           filtros={filtros}
           onFechar={() => setFiltrosAbertos(false)}
-          onChange={setFiltros}
+          onChange={(novos) => { setFiltros(novos); setSelecionado(null); }}
         />
 
         {selecionado && <SystemDetails sistema={selecionado} onFechar={() => setSelecionado(null)} />}
+        <div className="absolute bottom-6 right-3 z-[600] flex flex-wrap gap-4 rounded-md border border-border bg-card/95 px-4 py-3 text-xs shadow-float sm:text-sm" aria-label="Legenda do mapa"><span className="flex items-center gap-2"><span className="size-3 rounded-full bg-saa" />SAA · Água</span><span className="flex items-center gap-2"><span className="size-3 rounded-full bg-ses" />SES · Esgoto</span></div>
       </main>
+      <ExecutiveDashboard aberto={painelAberto} onOpenChange={setPainelAberto} bens={bens} filtrado={filtrosAtivos > 0 || busca.trim().length > 0} />
     </div>
   );
 }

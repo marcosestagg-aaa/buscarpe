@@ -1,112 +1,48 @@
-import { useEffect, useState } from "react";
-import { ChevronDown, X } from "lucide-react";
-
-import { CATEGORIAS, GERES, GERES_MUNICIPIOS, MICRORREGIOES, MUNICIPIOS } from "@/data/mockSystems";
+import { X } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
+import { CATEGORIAS, REGIOES_DESENVOLVIMENTO, RD_MUNICIPIOS, MICRORREGIOES, MUNICIPIOS } from "@/data/mockSystems";
 import { FILTROS_INICIAIS, TODOS, type FiltrosBem } from "@/types/system";
 
-interface FiltersPanelProps {
-  aberto: boolean;
-  filtros: FiltrosBem;
-  onFechar: () => void;
-  onChange: (filtros: FiltrosBem) => void;
+interface FiltersPanelProps { aberto: boolean; filtros: FiltrosBem; onFechar: () => void; onChange: (filtros: FiltrosBem) => void; }
+export const FILTER_LABELS: Record<keyof FiltrosBem, string> = {
+  microrregiao: "Microrregião", rd: "Regiões de Desenvolvimento", municipio: "Município", tipo: "Sistema", categoria: "Categoria", situacao: "Condição Operacional", concessionaria: "Concessionária", visibilidade: "Visibilidade",
+};
+export function filterValueLabel(key: keyof FiltrosBem, value: string) {
+  if (key === "visibilidade") return value === "Superficial" ? "Visível (Superficial)" : "Invisível (Subterrâneo)";
+  return value;
 }
-
-const selectClass =
-  "w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-ring focus:ring-2 focus:ring-ring/25";
-
-function Sanfona({
-  titulo,
-  valor,
-  opcoes,
-  onChange,
-}: {
-  titulo: string;
-  valor: string;
-  opcoes: string[];
-  onChange: (v: string) => void;
-}) {
-  const [aberta, setAberta] = useState(valor !== TODOS);
-  return (
-    <div className="border-b border-border">
-      <button
-        type="button"
-        onClick={() => setAberta(!aberta)}
-        aria-expanded={aberta}
-        className="flex w-full items-center justify-between px-4 py-3 text-left"
-      >
-        <span className="text-xs font-semibold uppercase tracking-wide text-foreground">
-          {titulo}
-          {valor !== TODOS && <span className="ml-2 normal-case text-brand">· {valor}</span>}
-        </span>
-        <ChevronDown className={`size-4 text-muted-foreground transition-transform ${aberta ? "rotate-180" : ""}`} />
-      </button>
-      {aberta && (
-        <div className="px-4 pb-3">
-          <select className={selectClass} value={valor} onChange={(e) => onChange(e.target.value)} aria-label={titulo}>
-            <option value={TODOS}>Todos</option>
-            {opcoes.map((o) => (
-              <option key={o} value={o}>
-                {o}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-    </div>
-  );
-}
-
 export function FiltersPanel({ aberto, filtros, onFechar, onChange }: FiltersPanelProps) {
-  const [, force] = useState(0);
-  useEffect(() => force((n) => n + 1), [aberto]);
   if (!aberto) return null;
-
-  const municipios = filtros.geres === TODOS ? MUNICIPIOS : (GERES_MUNICIPIOS[filtros.geres] ?? []);
-  const set = (parcial: Partial<FiltrosBem>) => onChange({ ...filtros, ...parcial });
-
-  return (
-    <>
-      <div className="absolute inset-0 z-[900] bg-brand-deep/20" onClick={onFechar} aria-hidden="true" />
-      <aside className="absolute inset-y-0 left-0 z-[1000] flex w-full max-w-sm flex-col bg-card shadow-panel sm:w-80">
-        <div className="flex items-center justify-between border-b border-border px-4 py-3">
-          <h2 className="text-sm font-semibold text-foreground">Filtros</h2>
-          <button
-            type="button"
-            onClick={onFechar}
-            aria-label="Fechar filtros"
-            className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-          >
-            <X className="size-4" />
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto">
-          <Sanfona titulo="Microrregião" valor={filtros.microrregiao} opcoes={MICRORREGIOES} onChange={(v) => set({ microrregiao: v })} />
-          <Sanfona
-            titulo="GERES"
-            valor={filtros.geres}
-            opcoes={GERES}
-            onChange={(v) => {
-              const lista = v === TODOS ? MUNICIPIOS : (GERES_MUNICIPIOS[v] ?? []);
-              set({ geres: v, municipio: lista.includes(filtros.municipio) ? filtros.municipio : TODOS });
-            }}
-          />
-          <Sanfona titulo="Município" valor={filtros.municipio} opcoes={municipios} onChange={(v) => set({ municipio: v })} />
-          <Sanfona titulo="Sistema" valor={filtros.tipo} opcoes={["SAA", "SES"]} onChange={(v) => set({ tipo: v })} />
-          <Sanfona titulo="Categoria" valor={filtros.categoria} opcoes={CATEGORIAS} onChange={(v) => set({ categoria: v })} />
-          <Sanfona titulo="Situação" valor={filtros.situacao} opcoes={["Operando", "Inoperante"]} onChange={(v) => set({ situacao: v })} />
-        </div>
-
-        <div className="border-t border-border px-4 py-4">
-          <button
-            type="button"
-            onClick={() => onChange(FILTROS_INICIAIS)}
-            className="w-full rounded-md px-4 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-          >
-            Redefinir filtros
-          </button>
-        </div>
-      </aside>
-    </>
-  );
+  const municipios = filtros.rd === TODOS ? MUNICIPIOS : (RD_MUNICIPIOS[filtros.rd] ?? []);
+  const options: Record<keyof FiltrosBem, string[]> = {
+    microrregiao: MICRORREGIOES, rd: REGIOES_DESENVOLVIMENTO, municipio: municipios, tipo: ["SAA", "SES"], categoria: CATEGORIAS,
+    situacao: ["Operando", "Inoperante", "N/I"], concessionaria: ["Vita", "Aqua"], visibilidade: ["Superficial", "Subterrâneo"],
+  };
+  const set = (key: keyof FiltrosBem, value: string) => {
+    const next = { ...filtros, [key]: value };
+    if (key === "rd" && value !== TODOS && !(RD_MUNICIPIOS[value] ?? []).includes(filtros.municipio)) next.municipio = TODOS;
+    onChange(next);
+  };
+  return <>
+    <div className="absolute inset-0 z-[900] bg-foreground/20" onClick={onFechar} aria-hidden="true" />
+    <aside aria-label="Filtros dos bens" className="absolute inset-y-0 left-0 z-[1000] flex w-full max-w-sm flex-col bg-card shadow-panel sm:w-96">
+      <div className="flex items-center justify-between border-b border-border px-5 py-4">
+        <h2 className="font-display text-lg font-semibold">Filtros</h2>
+        <Button variant="ghost" size="icon" onClick={onFechar} aria-label="Fechar filtros"><X /></Button>
+      </div>
+      <div className="flex-1 overflow-y-auto px-5">
+        <Accordion type="multiple" defaultValue={Object.keys(filtros).filter((k) => filtros[k as keyof FiltrosBem] !== TODOS)}>
+          {(Object.keys(options) as (keyof FiltrosBem)[]).map((key) => <AccordionItem key={key} value={key}>
+            <AccordionTrigger className="py-4 hover:no-underline"><span>{FILTER_LABELS[key]}{filtros[key] !== TODOS && <span className="mt-1 block text-xs text-brand">{filterValueLabel(key, filtros[key])}</span>}</span></AccordionTrigger>
+            <AccordionContent><select aria-label={FILTER_LABELS[key]} value={filtros[key]} onChange={(e) => set(key, e.target.value)} className="w-full rounded-md border border-input bg-background px-3 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring">
+              <option value={TODOS}>{key === "concessionaria" || key === "visibilidade" ? "Todas" : "Todos"}</option>
+              {options[key].map((o) => <option key={o} value={o}>{filterValueLabel(key, o)}</option>)}
+            </select></AccordionContent>
+          </AccordionItem>)}
+        </Accordion>
+      </div>
+      <div className="flex gap-2 border-t border-border p-5"><Button variant="outline" className="flex-1" onClick={() => onChange(FILTROS_INICIAIS)}>Redefinir filtros</Button><Button onClick={onFechar}>Ver mapa</Button></div>
+    </aside>
+  </>;
 }

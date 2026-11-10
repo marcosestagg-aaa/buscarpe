@@ -8,3 +8,7 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Keep sanitation filtering and executive aggregates in the browser-safe system-summary module so the map and dashboard always share the same selected dataset.
+- Model installation parents separately from their linked equipment; executive child totals count only linked equipment, never parent installations.
+- Keep prototype data and authentication local and explicitly simulated; presentation updates must not introduce backend services.

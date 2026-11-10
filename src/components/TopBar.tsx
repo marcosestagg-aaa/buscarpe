@@ -1,71 +1,24 @@
-import { Eraser, LogOut, Search, SlidersHorizontal } from "lucide-react";
-
+import { BarChart3, Eraser, LogOut, Search, SlidersHorizontal, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { FILTER_LABELS, filterValueLabel } from "@/components/FiltersPanel";
+import { TODOS, type FiltrosBem } from "@/types/system";
 interface TopBarProps {
-  busca: string;
-  onBuscaChange: (valor: string) => void;
-  onAbrirFiltros: () => void;
-  onLimpar: () => void;
-  onSair: () => void;
-  filtrosAtivos: number;
+  busca: string; onBuscaChange: (valor: string) => void; onAbrirFiltros: () => void; onLimpar: () => void;
+  onSair: () => void; filtros: FiltrosBem; onRemoverFiltro: (key: keyof FiltrosBem) => void; onAbrirPainel: () => void;
 }
-
-export function TopBar({ busca, onBuscaChange, onAbrirFiltros, onLimpar, onSair, filtrosAtivos }: TopBarProps) {
-  return (
-    <header className="z-[500] border-b border-border bg-card/95 backdrop-blur">
-      <div className="flex flex-wrap items-center gap-2 px-3 py-2 sm:gap-4 sm:px-5 sm:py-2.5">
-        <h1 className="font-display text-lg font-semibold tracking-tight text-brand-deep">
-          busc<span className="text-brand">ARPE</span>
-          <span className="ml-2 hidden text-sm font-medium text-muted-foreground lg:inline">
-            — Sistemas de Saneamento de Pernambuco
-          </span>
-        </h1>
-
-        <div className="order-3 flex w-full items-center gap-2 sm:order-2 sm:mx-auto sm:w-auto sm:max-w-xl sm:flex-1">
-          <button
-            type="button"
-            onClick={onAbrirFiltros}
-            className="relative inline-flex shrink-0 items-center gap-2 rounded-md border border-border px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
-          >
-            <SlidersHorizontal className="size-4 text-brand" />
-            Filtros
-            {filtrosAtivos > 0 && (
-              <span className="ml-0.5 rounded-full bg-brand px-1.5 text-[10px] font-semibold text-primary-foreground">
-                {filtrosAtivos}
-              </span>
-            )}
-          </button>
-
-          <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              value={busca}
-              onChange={(e) => onBuscaChange(e.target.value)}
-              placeholder="Buscar por nome, código, endereço, município, categoria…"
-              aria-label="Buscar bens"
-              className="w-full rounded-md border border-input bg-background py-2 pl-9 pr-3 text-sm text-foreground outline-none transition-shadow placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/25"
-            />
-          </div>
-        </div>
-
-        <div className="order-2 ml-auto flex items-center gap-1 sm:order-3 sm:ml-0">
-          <button
-            type="button"
-            onClick={onLimpar}
-            className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-          >
-            <Eraser className="size-4" />
-            Limpar
-          </button>
-          <button
-            type="button"
-            onClick={onSair}
-            className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-          >
-            <LogOut className="size-4" />
-            Sair
-          </button>
-        </div>
+export function TopBar({ busca, onBuscaChange, onAbrirFiltros, onLimpar, onSair, filtros, onRemoverFiltro, onAbrirPainel }: TopBarProps) {
+  const ativos = (Object.keys(filtros) as (keyof FiltrosBem)[]).filter((key) => filtros[key] !== TODOS);
+  return <header className="z-[500] border-b border-border bg-card">
+    <div className="flex flex-wrap items-center gap-2 px-3 py-3 sm:gap-3 sm:px-4 lg:px-6">
+      <div className="mr-auto"><h1 className="font-display text-2xl font-semibold text-brand-deep">Busc<span className="text-saa">ARPE</span><span className="sr-only"> — Sistemas de Saneamento de Pernambuco</span></h1><p className="hidden text-xs text-muted-foreground xl:block">Sistemas de Saneamento de Pernambuco</p></div>
+      <div className="order-3 flex w-full gap-2 md:order-none md:w-auto md:max-w-xl md:flex-1">
+        <Button variant="outline" onClick={onAbrirFiltros}><SlidersHorizontal />Filtros{ativos.length > 0 && <span className="rounded-full bg-brand px-1.5 text-xs text-primary-foreground">{ativos.length}</span>}</Button>
+        <div className="relative min-w-0 flex-1"><Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><input value={busca} onChange={(e) => onBuscaChange(e.target.value)} placeholder="Buscar bem, código ou município…" aria-label="Buscar bens" className="h-9 w-full rounded-md border border-input bg-background pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring" /></div>
       </div>
-    </header>
-  );
+      <Button onClick={onAbrirPainel} className="gap-1.5 bg-brand-deep px-2 text-xs text-primary-foreground hover:bg-brand sm:gap-2 sm:px-4 sm:text-sm"><BarChart3 /><span>Painel Executivo</span></Button>
+      <Button variant="ghost" size="icon" className="w-7 sm:w-9" onClick={onLimpar} aria-label="Limpar" title="Limpar busca e filtros"><Eraser /></Button>
+      <Button variant="ghost" size="icon" className="w-7 sm:w-9" onClick={onSair} aria-label="Sair" title="Sair"><LogOut /></Button>
+    </div>
+    {ativos.length > 0 && <div aria-label="Filtros ativos" className="flex flex-wrap items-center gap-2 border-t border-border px-4 py-2 lg:px-6"><span className="mr-1 text-xs text-muted-foreground">Recorte atual</span>{ativos.map((key) => <Button key={key} variant="secondary" size="sm" onClick={() => onRemoverFiltro(key)} aria-label={`Remover filtro ${FILTER_LABELS[key]}`} className={`h-auto min-h-8 whitespace-normal text-left ${key === "tipo" ? filtros[key] === "SAA" ? "bg-saa/10 text-saa" : "bg-ses/10 text-ses" : ""}`}><span>{filterValueLabel(key, filtros[key])}</span><X className="size-3" /></Button>)}</div>}
+  </header>;
 }

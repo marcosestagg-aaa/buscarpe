@@ -1,119 +1,24 @@
 import { useState } from "react";
-import { ExternalLink, FileText, X } from "lucide-react";
-
+import { FileText, X, Wrench } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { StatusBadge, SystemBadge, VisibilityBadge } from "@/components/SystemBadges";
 import type { BemSaneamento } from "@/types/system";
-
-interface SystemDetailsProps {
-  sistema: BemSaneamento;
-  onFechar: () => void;
-}
-
-type Aba = "visao" | "equip" | "docs";
-
-const abas: { id: Aba; label: string }[] = [
-  { id: "visao", label: "Visão Geral" },
-  { id: "equip", label: "Equipamentos" },
-  { id: "docs", label: "Documentos" },
-];
-
+interface SystemDetailsProps { sistema: BemSaneamento; onFechar: () => void; }
 function Linha({ rotulo, valor }: { rotulo: string; valor: string }) {
-  return (
-    <div className="flex items-start justify-between gap-4 py-1.5">
-      <dt className="text-xs text-muted-foreground">{rotulo}</dt>
-      <dd className="text-right text-sm font-medium text-foreground">{valor}</dd>
-    </div>
-  );
+  return <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-4 py-3"><dt className="text-sm text-muted-foreground">{rotulo}</dt><dd className="break-words text-right text-sm font-medium">{valor}</dd></div>;
 }
-
-function Vazio({ texto }: { texto: string }) {
-  return <p className="rounded-md border border-dashed border-border px-3 py-6 text-center text-sm text-muted-foreground">{texto}</p>;
-}
-
 export function SystemDetails({ sistema, onFechar }: SystemDetailsProps) {
-  const [aba, setAba] = useState<Aba>("visao");
-
-  return (
-    <div className="pointer-events-auto absolute inset-x-3 bottom-3 z-[1000] max-h-[70%] overflow-hidden rounded-xl border border-border bg-card shadow-panel sm:inset-x-auto sm:bottom-auto sm:right-4 sm:top-4 sm:max-h-[calc(100%-2rem)] sm:w-[22rem]">
-      <div className="flex items-start gap-3 bg-brand-deep px-4 py-3">
-        <div className="min-w-0 flex-1">
-          <h2 className="truncate text-sm font-semibold text-primary-foreground">{sistema.nome}</h2>
-          <p className="mt-0.5 text-xs text-primary-foreground/70">Código: {sistema.codigo}</p>
-        </div>
-        <button
-          type="button"
-          onClick={onFechar}
-          aria-label="Fechar detalhes"
-          className="rounded-md p-1 text-primary-foreground/80 transition-colors hover:bg-primary-foreground/15 hover:text-primary-foreground"
-        >
-          <X className="size-4" />
-        </button>
+  const [aba, setAba] = useState("visao");
+  return <section aria-label="Detalhes do bem" className="absolute inset-x-2 bottom-2 z-[1000] flex max-h-[85%] flex-col overflow-hidden rounded-lg border border-border bg-card shadow-panel sm:inset-x-auto sm:inset-y-4 sm:right-4 sm:max-h-none sm:w-[26rem]">
+    <div className="flex items-start gap-3 bg-brand-deep px-5 py-4"><div className="min-w-0 flex-1"><h2 className="font-display text-lg font-semibold text-primary-foreground">{sistema.nome}</h2><p className="mt-1 text-xs text-primary-foreground/75">Instalação pai · {sistema.codigo}</p></div><Button variant="ghost" size="icon" onClick={onFechar} aria-label="Fechar detalhes" className="shrink-0 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"><X /></Button></div>
+    <div className="flex flex-wrap gap-2 px-5 py-3"><SystemBadge tipo={sistema.tipo} /><VisibilityBadge valor={sistema.visibilidade} /></div>
+    <Tabs value={aba} onValueChange={setAba} className="flex min-h-0 flex-1 flex-col"><TabsList className="mx-5 grid shrink-0 grid-cols-3"><TabsTrigger value="visao">Visão Geral</TabsTrigger><TabsTrigger value="filhos">Bens Filhos</TabsTrigger><TabsTrigger value="docs">Documentos</TabsTrigger></TabsList>
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-3">
+        <TabsContent value="visao"><dl className="divide-y divide-border"><Linha rotulo="Código Único Instalação Pai" valor={sistema.codigo} /><Linha rotulo="Nome bem pai" valor={sistema.nome} /><div className="flex items-center justify-between gap-3 py-3"><dt className="text-sm text-muted-foreground">Condição Operacional</dt><dd><StatusBadge situacao={sistema.situacao} /></dd></div><Linha rotulo="Concessionária" valor={sistema.concessionaria} /><Linha rotulo="Região de Desenvolvimento" valor={sistema.regiaoDesenvolvimento} /><Linha rotulo="Município" valor={sistema.municipio} /><Linha rotulo="Endereço" valor={sistema.endereco} /><Linha rotulo="Categoria" valor={sistema.categoria} /><Linha rotulo="Tipo de Sistema" valor={sistema.tipo === "SAA" ? "SAA — Abastecimento de água" : "SES — Esgotamento sanitário"} /></dl></TabsContent>
+        <TabsContent value="filhos">{sistema.equipamentos.length === 0 ? <p className="py-8 text-center text-sm text-muted-foreground">Não há bens filhos cadastrados para este bem</p> : <ul className="divide-y divide-border">{sistema.equipamentos.map((eq) => <li key={eq.id} className="py-4"><div className="flex gap-3"><Wrench className="mt-1 size-4 shrink-0 text-brand" /><div><p className="text-sm font-semibold">{eq.nome}</p><p className="mt-1 text-xs text-muted-foreground">{eq.codigo}</p></div></div><div className="mt-3 flex flex-wrap gap-2"><StatusBadge situacao={eq.situacao} /><VisibilityBadge valor={eq.visibilidade} compacto /></div></li>)}</ul>}</TabsContent>
+        <TabsContent value="docs">{sistema.documentos.length === 0 ? <p className="py-8 text-center text-sm text-muted-foreground">Não há documentos anexados a este bem</p> : <ul className="divide-y divide-border">{sistema.documentos.map((doc) => <li key={doc.id} className="flex items-center gap-3 py-4"><FileText className="size-5 shrink-0 text-brand" /><div className="min-w-0"><p className="text-sm font-medium">{doc.nome}</p><p className="mt-1 text-xs text-muted-foreground">{doc.tipo} · {doc.tamanho}</p></div></li>)}</ul>}</TabsContent>
       </div>
-
-      <div className="flex border-b border-border">
-        {abas.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            onClick={() => setAba(item.id)}
-            className={`flex-1 border-b-2 px-2 py-2.5 text-xs font-medium transition-colors ${
-              aba === item.id ? "border-brand text-brand" : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {item.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="max-h-[calc(70vh-7rem)] overflow-y-auto px-4 py-4 sm:max-h-[calc(100vh-12rem)]">
-        {aba === "visao" && (
-          <dl className="divide-y divide-border">
-            <Linha rotulo="Código Único" valor={sistema.codigo} />
-            <Linha rotulo="Nome" valor={sistema.nome} />
-            <Linha rotulo="Endereço" valor={sistema.endereco} />
-            <Linha rotulo="Município" valor={sistema.municipio} />
-            <Linha rotulo="Categoria" valor={sistema.categoria} />
-            <Linha rotulo="Tipo de Sistema" valor={sistema.tipo === "SAA" ? "SAA — Abastecimento de água" : "SES — Esgotamento sanitário"} />
-            <Linha rotulo="Situação" valor={sistema.situacao} />
-          </dl>
-        )}
-
-        {aba === "equip" &&
-          (sistema.equipamentos.length === 0 ? (
-            <Vazio texto="Não há equipamentos cadastrados para este bem" />
-          ) : (
-            <ul className="space-y-2">
-              {sistema.equipamentos.map((eq) => (
-                <li key={eq.id} className="rounded-md border border-border px-3 py-2.5">
-                  <p className="text-sm font-medium text-foreground">{eq.nome}</p>
-                  <div className="mt-1 flex justify-between text-xs text-muted-foreground">
-                    <span>{eq.codigo}</span>
-                    <span className={eq.situacao === "Operando" ? "text-brand" : ""}>{eq.situacao}</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ))}
-
-        {aba === "docs" &&
-          (sistema.documentos.length === 0 ? (
-            <Vazio texto="Não há documentos anexados a este bem" />
-          ) : (
-            <ul className="space-y-2">
-              {sistema.documentos.map((doc) => (
-                <li key={doc.id} className="flex items-center gap-3 rounded-md border border-border px-3 py-2.5">
-                  <FileText className="size-4 shrink-0 text-brand" />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-foreground">{doc.nome}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {doc.tipo} · {doc.tamanho}
-                    </p>
-                  </div>
-                  <ExternalLink className="size-4 shrink-0 text-muted-foreground" />
-                </li>
-              ))}
-            </ul>
-          ))}
-      </div>
-    </div>
-  );
+    </Tabs>
+  </section>;
 }
